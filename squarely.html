@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+      integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+      crossorigin=""
+    />
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script
+      src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+      integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+      crossorigin=""
+    ></script>
+    <script src="https://npmcdn.com/@turf/turf@6.3.0/turf.min.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      #map {
+        height: 400px;
+      }
+
+      .leaflet-top .leaflet-control {
+        margin-top: 300px;
+      }
+
+      .leaflet-control-attribution {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+    <script>
+        var mapBounds = [
+            [800, 0],
+            [0, 800],
+        ]
+
+        var map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -1,
+        maxBounds: mapBounds,
+        maxBoundsViscosity: 5,
+        });
+
+        var bounds = [[0,0], [800, 800]];
+        var image = L.imageOverlay('img/senna.jpg', bounds).addTo(map);
+
+        map.fitBounds(bounds);
+
+        //Function to highlight Polygons
+    function highlightFeature(e) {
+      var layer = e.target;
+
+      layer.setStyle({
+        weight: 2,
+        color: "red",
+        fillOpacity: 0.4,
+      });
+
+      if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+      }
+    }
+
+    let generateFeature = (fixedtllng, tolat, fixedtrlng, bolat, row, column) => {
+      var i = 0;
+      var column_counter = 0;
+      var row_counter = 0;
+      var features = [];
+      //left (first)
+      var fixedtllng = 0;
+      var tllng = fixedtllng;
+      //top(first)
+      var tolat = 800;
+      //right
+      var fixedtrlng = 8;
+      var trlng = fixedtrlng;
+      //bottum (last)
+      var bolat = 792;
+      var latgap = tolat - bolat;
+      var lnggap = trlng - tllng;
+      while (row_counter <= row) {
+        temp = {
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [tllng, tolat],
+                [trlng, tolat],
+                [trlng, bolat],
+                [tllng, bolat],
+                [tllng, tolat],
+              ],
+            ],
+          },
+        };
+ 
+        features.push(temp);
+        tllng = trlng;
+        trlng += lnggap;
+        column_counter++;
+        i++;
+        if (column_counter == column) {
+          column_counter = 0;
+          row_counter++;
+          trlng = fixedtrlng;
+          tllng = fixedtllng;
+          tolat = bolat;
+          bolat -= latgap;
+        }
+      }
+ 
+      return features;
+    };
+
+    var geojson = {
+      type: "FeatureCollection",
+      features: generateFeature (
+        80,
+        0,
+        0,
+        80,
+        99,
+        100
+      ),
+    };
+    map.setView( [600, 600], 0)
+
+    function resetHighlight(e) {
+      var layer = e.target;
+
+      layer.setStyle({
+        weight: 2,
+        color: "grey",
+        fillOpacity: 0.1,
+      });
+      
+    }
+
+    //Polygon count to ensure the ticket numbers are correct on each grid square
+    var polcnt = 1;
+
+    L.geoJSON(geojson, {
+      style: function (feature) {
+        return {
+          color: "grey",
+          weight: 2,
+          fillOpacity: 0.1,
+        };
+      },
+      onEachFeature: function (feature, layer) {
+        feature.properties.id = polcnt;
+        layer.on({
+          mouseover: highlightFeature,
+          mouseout: resetHighlight,
+        });
+        polcnt++;
+        layer.on("mouseover", function (e) {
+          //open popup;
+          var popup = L.popup()
+            .setLatLng(e.latlng)
+            .setContent("Ticket Number = " + e.target.feature.properties.id)
+            .openOn(map);
+        });
+      },
+    }).addTo(map);
+
+
+        map.on('click', function(e){
+  var coord = e.latlng;
+  var lat = coord.lat;
+  var lng = coord.lng;
+  console.log("You clicked the map at latitude: " + lat + " and longitude: " + lng);
+  });
+    </script>
+  </html>   
