@@ -24,7 +24,8 @@
     ></script>
     <style>
       #map {
-        height: 400px;
+        height: 600px;
+        width: 100%;
       }
 
       .leaflet-top .leaflet-control {
@@ -40,19 +41,17 @@
     <div id="map"></div>
   </body>
     <script>
-        var mapBounds = [
-            [800, 0],
-            [0, 800],
-        ]
+        /*var mapBounds = [
+            [600, 0],
+            [0, 600],
+        ]*/
 
         var map = L.map('map', {
         crs: L.CRS.Simple,
-        minZoom: -1,
-        maxBounds: mapBounds,
-        maxBoundsViscosity: 5,
+        minZoom: -5,
         });
 
-        var bounds = [[0,0], [800, 800]];
+        var bounds = [[0,0], [600, 600]];
         var image = L.imageOverlay('img/senna.jpg', bounds).addTo(map);
 
         map.fitBounds(bounds);
@@ -81,12 +80,12 @@
       var fixedtllng = 0;
       var tllng = fixedtllng;
       //top(first)
-      var tolat = 800;
+      var tolat = 600;
       //right
-      var fixedtrlng = 8;
+      var fixedtrlng = 6;
       var trlng = fixedtrlng;
       //bottum (last)
-      var bolat = 792;
+      var bolat = 594;
       var latgap = tolat - bolat;
       var lnggap = trlng - tllng;
       while (row_counter <= row) {
@@ -128,15 +127,15 @@
     var geojson = {
       type: "FeatureCollection",
       features: generateFeature (
-        80,
+        60,
         0,
         0,
-        80,
+        60,
         99,
         100
       ),
     };
-    map.setView( [600, 600], 0)
+    //map.setView( [600, 600], 1)
 
     function resetHighlight(e) {
       var layer = e.target;
